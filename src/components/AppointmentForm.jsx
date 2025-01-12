@@ -1,132 +1,211 @@
-import React, { useState, useEffect } from 'react';
-import AppointmentForm from './AppointmentForm'; // Asegúrate de importar correctamente el componente
+import React, { useState, useRef, useEffect } from 'react';
+import Button from 'react-bootstrap/Button';
+import Form from 'react-bootstrap/Form';
+import { useHospital } from '../context/HospitalContext';
+import Toast from 'react-bootstrap/Toast';
+import ToastContainer from 'react-bootstrap/ToastContainer';
 
-const Admin = () => {
-  const [medicalTeams, setMedicalTeams] = useState([]);
-  const [appointments, setAppointments] = useState([]);
-  const [services, setServices] = useState([]);
-  const [newMedicalTeam, setNewMedicalTeam] = useState({ name: '', specialization: '' });
-  const [newAppointment, setNewAppointment] = useState({
-    doctor_id: '',
-    patient_name: '',
-    service_id: '',
-    appointment_date: '',
-  });
+const AppointmentForm = () => {
+  const {
+    services,
+    doctors,
+    doctorServices,
+    fetchServices,
+    fetchDoctors,
+    fetchDoctorServices,
+  } = useHospital();
+
+  const nameInputRef = useRef(null);
+
+  const [selectedService, setSelectedService] = useState('');
+  const [selectedDoctor, setSelectedDoctor] = useState('');
+  const [selectedName, setSelectedName] = useState('');
+  const [selectedDate, setSelectedDate] = useState('');
+  const [filteredDoctors, setFilteredDoctors] = useState(doctors);
+  const [filteredServices, setFilteredServices] = useState(services);
+  const [showMessage, setShowMessage] = useState(false);
+
 
   useEffect(() => {
-    fetchMedicalTeams();
-    fetchAppointments();
+    console.log("Llamando a fetchDoctorServices...");
     fetchServices();
+    fetchDoctors();
+    fetchDoctorServices();
   }, []);
+  
 
-  const fetchMedicalTeams = async () => {
-    try {
-      const response = await fetch('http://localhost:5000/doctors');
-      const data = await response.json();
-      setMedicalTeams(data);
-    } catch (error) {
-      console.error('Error fetching medical teams:', error);
+  
+  const handleServiceChange = (event) => {
+    const serviceId = event.target.value;
+    setSelectedService(serviceId);
+    
+   
+    if (!serviceId) {
+      setFilteredDoctors(doctors);
+    } else {
+      
+      const doctorIdsWithService = doctorServices
+        .filter((ds) => ds.service_id === parseInt(serviceId))
+        .map((ds) => ds.doctor_id);
+      
+   
+      const doctorsFiltered = doctors.filter((doctor) =>
+        doctorIdsWithService.includes(doctor.id)
+      );
+      
+      setFilteredDoctors(doctorsFiltered);
     }
   };
+  
+  
 
-  const fetchAppointments = async () => {
-    try {
-      const response = await fetch('http://localhost:5000/appointments');
-      const data = await response.json();
-      setAppointments(data);
-    } catch (error) {
-      console.error('Error fetching appointments:', error);
+  const handleDoctorChange = (event) => {
+    const doctorId = event.target.value;
+    setSelectedDoctor(doctorId);
+  
+ 
+    if (!doctorId) {
+      setFilteredServices(services);
+    } else {
+     
+      const serviceIdsWithDoctor = doctorServices
+        .filter((ds) => ds.doctor_id === parseInt(doctorId)) 
+        .map((ds) => ds.service_id);
+  
+     
+      const servicesFiltered = services.filter((service) =>
+        serviceIdsWithDoctor.includes(service.id)
+      );
+  
+      setFilteredServices(servicesFiltered);
     }
   };
-
-  const fetchServices = async () => {
-    try {
-      const response = await fetch('http://localhost:5000/services');
-      const data = await response.json();
-      setServices(data);
-    } catch (error) {
-      console.error('Error fetching services:', error);
-    }
+  
+  const handleName = (e) => {
+    setSelectedName(e.target.value);
   };
 
-  const handleAddAppointment = async () => {
+  const handleDate = (e) => {
+    setSelectedDate(e.target.value);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!selectedDoctor || !selectedName || !selectedService || !selectedDate) {
+      if (nameInputRef.current) {
+        nameInputRef.current.focus();
+      }
+      return;
+    }
+
     try {
       const response = await fetch('http://localhost:5000/appointments', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(newAppointment),
+        body: JSON.stringify({
+          doctor_id: selectedDoctor,
+          patient_name: selectedName,
+          service_id: selectedService,
+          appointment_date: selectedDate,
+        }),
       });
+
       const data = await response.json();
-      setAppointments([...appointments, data]);
-      setNewAppointment({
-        doctor_id: '',
-        patient_name: '',
-        service_id: '',
-        appointment_date: '',
-      });
+
+      if (response.ok) {
+        setShowMessage(true);
+        setTimeout(() => {
+          setShowMessage(false);
+        }, 3000);
+      } else {
+        console.error(data.error || 'Ocurrió un error en la solicitud');
+      }
     } catch (error) {
-      console.error('Error adding appointment:', error);
+      console.error(error.message || 'Ocurrió un error desconocido');
     }
   };
 
-  const handleDeleteAppointment = async (id) => {
-    try {
-      await fetch(`http://localhost:5000/appointments/${id}`, {
-        method: 'DELETE',
-      });
-      setAppointments(appointments.filter((appointment) => appointment.id !== id));
-    } catch (error) {
-      console.error('Error deleting appointment:', error);
-    }
-  };
-
-  const handleUpdateAppointment = async (id, updatedAppointment) => {
-    try {
-      const response = await fetch(`http://localhost:5000/appointments/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(updatedAppointment),
-      });
-      const data = await response.json();
-      setAppointments(appointments.map((appointment) =>
-        appointment.id === id ? { ...appointment, ...data } : appointment
-      ));
-    } catch (error) {
-      console.error('Error updating appointment:', error);
-    }
-  };
+  useEffect(() => {
+    setFilteredDoctors(doctors);
+    setFilteredServices(services);
+  }, [doctors, services]);
 
   return (
-    <div>
-      <h1>Admin Panel</h1>
+    <>
+      <Form onSubmit={handleSubmit}>
+        <fieldset>
+          <Form.Group className="mb-3">
+            <Form.Label htmlFor="fullName">Nombre completo</Form.Label>
+            <Form.Control
+              id="fullName"
+              ref={nameInputRef}
+              value={selectedName}
+              onChange={handleName}
+              placeholder="Escriba su nombre completo"
+            />
+          </Form.Group>
 
-      <section>
-        <h2>Appointments</h2>
-        <AppointmentForm
-          services={services}
-          doctors={medicalTeams}
-          appointments={appointments}
-          setAppointments={setAppointments}
-          handleAddAppointment={handleAddAppointment}
-          handleDeleteAppointment={handleDeleteAppointment}
-          handleUpdateAppointment={handleUpdateAppointment}
-        />
-        <ul>
-          {appointments.map((appointment) => (
-            <li key={appointment.id}>
-              {appointment.patient_name} - {appointment.appointment_date} (Doctor ID: {appointment.doctor_id}, Service ID: {appointment.service_id})
-              <button onClick={() => handleDeleteAppointment(appointment.id)}>Delete</button>
-              <button onClick={() => handleUpdateAppointment(appointment.id, appointment)}>Update</button>
-            </li>
-          ))}
-        </ul>
-      </section>
-    </div>
+          <Form.Group className="mb-3">
+            <Form.Label htmlFor="service">Servicio</Form.Label>
+            <Form.Select
+              id="service"
+              value={selectedService}
+              onChange={handleServiceChange}
+            >
+              <option value="">Seleccione un servicio</option>
+              {filteredServices.map((service) => (
+                <option value={service.id} key={service.id}>
+                  {service.name}
+                </option>
+              ))}
+            </Form.Select>
+          </Form.Group>
+
+          <Form.Group className="mb-3">
+            <Form.Label htmlFor="doctor">Doctor</Form.Label>
+            <Form.Select
+              id="doctor"
+              value={selectedDoctor}
+              onChange={handleDoctorChange}
+            >
+              <option value="">Seleccione un doctor</option>
+              {filteredDoctors.map((doctor) => (
+                <option value={doctor.id} key={doctor.id}>
+                  {doctor.name}
+                </option>
+              ))}
+            </Form.Select>
+          </Form.Group>
+
+          <Form.Group className="mb-3">
+            <Form.Label htmlFor="schedule">Horario</Form.Label>
+            <Form.Control
+              type="datetime-local"
+              id="schedule"
+              placeholder="Seleccione la fecha y hora"
+              value={selectedDate}
+              onChange={handleDate}
+            />
+          </Form.Group>
+
+          <Button type="submit">Enviar</Button>
+        </fieldset>
+      </Form>
+
+      <ToastContainer position="bottom-end" className="p-3">
+        <Toast show={showMessage} onClose={() => setShowMessage(false)}>
+          <Toast.Header>
+            <strong className="me-auto">Cita Agendada</strong>
+            <small>Ahora</small>
+          </Toast.Header>
+          <Toast.Body>¡Cita agendada exitosamente!</Toast.Body>
+        </Toast>
+      </ToastContainer>
+    </>
   );
 };
 
-export default Admin;
+export default AppointmentForm;
