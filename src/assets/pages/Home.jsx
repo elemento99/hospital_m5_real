@@ -69,22 +69,21 @@ const Home = () => {
 
               <Card className="mb-4">
                 <Card.Body>
-                  <Card.Title>Ubicación</Card.Title>
+                  <Card.Title>Contáctanos</Card.Title>
                   <Card.Text>
-                    <strong>Dirección:</strong> Avenida Principal 123, Ciudad Salud, País<br />
-                    <strong>Horarios:</strong> Lunes a viernes: 8:00 - 18:00<br />
-                    Sábados: 9:00 - 14:00
+                    <strong>Teléfono:</strong> +56 123 456 789<br />
+                    <strong>Email:</strong> contacto@hospital.com<br />
                   </Card.Text>
-                  <iframe
-                    title="Mapa del Hospital"
-                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3151.8354345093895!2d144.95373521590476!3d-37.81627974202113!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6ad642af0f11fd81%3A0x5045675218ce7e0!2sMelbourne%20VIC%2C%20Australia!5e0!3m2!1sen!2sus!4v1611814568172!5m2!1sen!2sus"
-                    width="100%"
-                    height="200"
-                    style={{ border: 0 }}
-                    allowFullScreen=""
-                    loading="lazy"
-                  ></iframe>
+                  <div>
+                    <strong>Redes Sociales:</strong>
+                    <ul>
+                      <li><a href="#">Facebook</a></li>
+                      <li><a href="#">Twitter</a></li>
+                      <li><a href="#">Instagram</a></li>
+                    </ul>
+                  </div>
                 </Card.Body>
+
               </Card>
 
               <Card className="mb-4">
@@ -93,21 +92,24 @@ const Home = () => {
                   <Card.Text>
                     <strong>Teléfono:</strong> +56 123 456 789<br />
                     <strong>Email:</strong> contacto@hospital.com<br />
+                  </Card.Text>
+                  <div>
                     <strong>Redes Sociales:</strong>
                     <ul>
                       <li><a href="#">Facebook</a></li>
                       <li><a href="#">Twitter</a></li>
                       <li><a href="#">Instagram</a></li>
                     </ul>
-                  </Card.Text>
+                  </div>
                 </Card.Body>
+
               </Card>
             </aside>
           </Profiler>
         </Col>
       </Row>
 
-      
+
     </Container>
   );
 };

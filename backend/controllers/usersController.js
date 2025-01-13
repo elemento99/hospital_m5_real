@@ -37,42 +37,23 @@ const login = async (req, res) => {
   }
 };
 
-// Registro de usuario
-const register = async (req, res) => {
-  const { email, password, role } = req.body;
 
+ const register = async (req, res) => {
   try {
-    console.log('Verificando existencia de usuario con email:', email);
+    const { email, password } = req.body;
 
-    const existingUser = await getUserByEmail(email);
-    if (existingUser) {
-      console.log('Usuario ya existe con este correo.');
-      return res.status(400).json({ message: 'El correo ya está registrado.' });
+    if (!email || !password) {
+      return res.status(400).json({ message: "Correo y contraseña son obligatorios." });
     }
 
-    // Hashear contraseña
-    const salt = bcrypt.genSaltSync(10);
-    const passwordHash = bcrypt.hashSync(password, salt);
+    const saltRounds = 10;
+    const hashedPassword = bcrypt.hashSync(password, saltRounds);
 
-    console.log('Creando nuevo usuario...');
-    const newUser = await createUser(email, passwordHash, role);
+    const user = { email, password: hashedPassword };
 
-    if (!newUser) {
-      console.log('Error al crear usuario.');
-      return res.status(500).json({ message: 'Error al registrar el usuario.' });
-    }
-
-    const response = {
-      success: true,
-      message: 'Usuario registrado exitosamente.',
-      userId: newUser.id,
-    };
-
-    console.log('Usuario creado:', response);
-    return res.status(201).json(response);
+    res.status(201).json({ message: "Usuario registrado con éxito." });
   } catch (err) {
-    console.error('Error en el registro:', err);
-    return res.status(500).json({ message: 'Error en el servidor.' });
+    res.status(500).json({ message: "Error al registrar el usuario.", error: err.message });
   }
 };
 

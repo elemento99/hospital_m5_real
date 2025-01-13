@@ -46,16 +46,17 @@ const RegisterForm = () => {
       const salt = bcrypt.genSaltSync(10);
       const hashedPassword = bcrypt.hashSync(password, salt);
 
-      // Hacer la solicitud a tu endpoint
-      const response = await fetch('http://localhost:5000/register', {  // Cambia la URL al endpoint de tu servidor
+     
+      const response = await fetch('http://localhost:5000/register', {  
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           email,
-          password_hash: hashedPassword,
+          password, 
         }),
+        
       });
 
       const data = await response.json();

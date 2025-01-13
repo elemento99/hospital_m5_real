@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet'; // Importa helmet
 import { login, register } from './backend/controllers/usersController.js';
 import {
   getAllDoctorsController, getAllServicesController, getAllDoctorServicesController, createAppointmentController,
@@ -18,6 +19,9 @@ dotenv.config();
 
 const app = express();
 const port = 5000;
+
+// Configura helmet
+app.use(helmet());
 
 app.use(cors({
   origin: 'http://localhost:5173',
@@ -44,7 +48,6 @@ app.get('/doctors/:id', getDoctorController);
 app.post('/doctors', createDoctorController);
 app.put('/doctors/:id', updateDoctorController);
 app.delete('/doctors/:id', deleteDoctorController);
-
 
 app.listen(port, () => {
   console.log(`Servidor escuchando en http://localhost:${port}`);
